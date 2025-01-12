@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <title>Mota Simple Game 2</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #322C2B;    
+            --secondary-color: #B04744;  
+            --accent-color: #E6A65D;     
+            --highlight-color: #F7E3CE;  
+            --soft-color: #E6A65D;      
+            --background-color: #2A2524; 
+            --text-color: #F7E3CE;      
+            --empty-cell: #3A3433;     
+            --cell-bg: #2F2927;        
+            --container-bg: #2F2927;    
+            --win-button-bg: #4A4342;   
+            --win-button-hover: #5A5352;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background: var(--background-color);
+            color: var(--text-color);
+            padding: 15px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: var(--highlight-color);
+            text-align: center;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .game-container {
+            background: var(--container-bg);
+            padding: 25px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 380px;
+            margin: 0 auto;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 12px;
+            width: 45%;
+            font-size: 13px;
+            border: none;
+            border-radius: 12px;
+            color: var(--highlight-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .score-display {
+            width: 45%;
+            padding: 12px;
+            text-align: center;
+            background: var(--cell-bg);
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.08);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .difficulty-selector {
+            display: none;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            background: var(--cell-bg);
+            padding: 8px;
+            border-radius: 15px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            max-width: 90px;
+        }
+
+        .difficulty-btn.active {
+            background: var(--accent-color);
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .board {
+            background: var(--primary-color);
+            padding: 15px;
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin: 0 auto;
+            aspect-ratio: 7/6;
+            width: 100%;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.08);
+        }
+
+        .cell {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: var(--empty-cell);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .cell:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .cell.red {
+            background: var(--secondary-color);
+            box-shadow: 0 2px 4px rgba(176,71,68,0.3);
+        }
+
+        .cell.yellow {
+            background: var(--soft-color);
+            box-shadow: 0 2px 4px rgba(230,166,93,0.3);
+        }
+
+        .cell.red.winner {
+            animation: redWinPulse 1s ease-in-out infinite;
+        }
+
+        .cell.yellow.winner {
+            animation: yellowWinPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes redWinPulse {
+            0% { 
+                box-shadow: 0 0 20px var(--secondary-color);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 35px var(--secondary-color);
+                transform: scale(1.15);
+            }
+            100% { 
+                box-shadow: 0 0 20px var(--secondary-color);
+                transform: scale(1);
+            }
+        }
+
+        @keyframes yellowWinPulse {
+            0% { 
+                box-shadow: 0 0 20px var(--soft-color);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 35px var(--soft-color);
+                transform: scale(1.15);
+            }
+            100% { 
+                box-shadow: 0 0 20px var(--soft-color);
+                transform: scale(1);
+            }
+        }
+
+        #status {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--cell-bg);
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.08);
+        }
+
+        .win-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(42, 37, 36, 0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .win-content {
+            background: var(--container-bg);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 320px;
+            animation: popup 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .win-content .control-btn {
+            background: var(--win-button-bg) !important;
+            color: var(--highlight-color);
+            padding: 15px 30px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: auto;
+            min-width: 150px;
+        }
+
+        .win-content .control-btn:hover {
+            background: var(--win-button-hover) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+
+        @keyframes popup {
+            0% { transform: scale(0.7); opacity: 0; }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media screen and (max-width: 380px) {
+            .control-btn, .score-display {
+                font-size: 12px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="title">MOTA SIMPLE GAME 2</div>
+    
+    <div class="game-container">
+        <div class="controls-container">
+            <div class="control-row">
+                <button class="control-btn" style="background: var(--secondary-color);" onclick="setGameMode('pvp')">
+                    لاعب ضد لاعب
+                </button>
+                <div class="score-display" style="color: var(--secondary-color);">
+                    اللاعب الأحمر: <span id="player1Score">0</span>
+                </div>
+            </div>
+            
+            <div class="control-row">
+                <button class="control-btn" style="background: var(--accent-color);" onclick="setGameMode('cpu')">
+                    لاعب ضد كمبيوتر
+                </button>
+                <div class="score-display" style="color: var(--soft-color);">
+                    <span id="player2Name">اللاعب الأصفر</span>: 
+                    <span id="player2Score">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="difficulty-selector" id="difficultySelector">
+            <button class="difficulty-btn active" onclick="setDifficulty('easy')">سهل</button>
+            <button class="difficulty-btn" onclick="setDifficulty('normal')">متوسط</button>
+            <button class="difficulty-btn" onclick="setDifficulty('hard')">صعب</button>
+        </div>
+
+        <div id="board" class="board"></div>
+        <div id="status"></div>
+    </div>
+
+    <div id="winScreen" class="win-screen">
+        <div class="win-content">
+            <h2 id="winMessage"></h2>
+            <button class="control-btn" onclick="closeWinScreen()">
+                العب مرة أخرى
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const ROWS = 6;
+        const COLS = 7;
+        let currentPlayer = 1;
+        let board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+        let gameOver = false;
+        let isComputerMode = false;
+        let difficulty = 'easy';
+        let scores = { player1: 0, player2: 0 };
+        let canPlay = true;
+
+        function evaluatePosition(row, col, player) {
+            let score = 0;
+            const directions = [
+                [0, 1],  // أفقي
+                [1, 0],  // عمودي
+                [1, 1],  // قطري يمين
+                [1, -1]  // قطري يسار
+            ];
+
+            for (let [dx, dy] of directions) {
+                let count = 1;
+                let blocked = 0;
+                let spaces = 0;
+                let consecutive = 1;
+                let potentialWin = false;
+
+                for (let dir of [1, -1]) {
+                    for (let i = 1; i <= 3; i++) {
+                        let r = row + dx * i * dir;
+                        let c = col + dy * i * dir;
+
+                        if (r < 0 || r >= ROWS || c < 0 || c >= COLS) {
+                            blocked++;
+                            break;
+                        }
+
+                        if (board[r][c] === 0) {
+                            spaces++;
+                            if (r === 0 || board[r-1][c] !== 0) {
+                                potentialWin = true;
+                            }
+                            break;
+                        }
+
+                        if (board[r][c] !== player) {
+                            blocked++;
+                            break;
+                        }
+
+                        count++;
+                        if (i === 1) consecutive++;
+                    }
+                }
+
+                if (count >= 4) score += 100000;
+                else if (count === 3 && blocked === 0 && potentialWin) score += 5000;
+                else if (count === 3 && blocked === 1) score += 100;
+                else if (count === 2 && blocked === 0 && consecutive === 2) score += 50;
+                else if (count === 2 && blocked === 0) score += 10;
+            }
+
+            if (col === 3) score += 6;
+            if (col === 2 || col === 4) score += 4;
+            if (col === 1 || col === 5) score += 2;
+            
+            if (row === 0) score += 2;
+            if (row === 1) score += 3;
+            if (row === 2) score += 4;
+            
+            return score;
+        }
+
+        function findBestMove() {
+            let bestScore = -Infinity;
+            let bestCol = 3;
+            const maxDepth = difficulty === 'hard' ? 6 : (difficulty === 'normal' ? 4 : 2);
+            
+            function minimax(depth, alpha, beta, isMaximizing) {
+                // Check for immediate wins/losses
+                for (let col = 0; col < COLS; col++) {
+                    let row = getNextRow(col);
+                    if (row !== -1) {
+                        board[row][col] = isMaximizing ? 2 : 1;
+                        if (checkWin(row, col)) {
+                            board[row][col] = 0;
+                            return isMaximizing ? 100000 : -100000;
+                        }
+                        board[row][col] = 0;
+                    }
+                }
+
+                if (depth === 0) {
+                    let score = 0;
+                    for (let col = 0; col < COLS; col++) {
+                        for (let row = 0; row < ROWS; row++) {
+                            if (board[row][col] !== 0) {
+                                score += evaluatePosition(row, col, board[row][col]) * 
+                                        (board[row][col] === 2 ? 1 : -1);
+                            }
+                        }
+                    }
+                    return score;
+                }
+
+                if (isMaximizing) {
+                    let maxScore = -Infinity;
+                    for (let col = 0; col < COLS; col++) {
+                        let row = getNextRow(col);
+                        if (row !== -1) {
+                            board[row][col] = 2;
+                            let score = minimax(depth - 1, alpha, beta, false);
+                            board[row][col] = 0;
+                            maxScore = Math.max(maxScore, score);
+                            alpha = Math.max(alpha, score);
+                            if (beta <= alpha) break;
+                        }
+                    }
+                    return maxScore;
+                } else {
+                    let minScore = Infinity;
+                    for (let col = 0; col < COLS; col++) {
+                        let row = getNextRow(col);
+                        if (row !== -1) {
+                            board[row][col] = 1;
+                            let score = minimax(depth - 1, alpha, beta, true);
+                            board[row][col] = 0;
+                            minScore = Math.min(minScore, score);
+                            beta = Math.min(beta, score);
+                            if (beta <= alpha) break;
+                        }
+                    }
+                    return minScore;
+                }
+            }
+
+            for (let col = 0; col < COLS; col++) {
+                let row = getNextRow(col);
+                if (row !== -1) {
+                    board[row][col] = 2;
+                    let score = minimax(maxDepth - 1, -Infinity, Infinity, false);
+                    board[row][col] = 0;
+
+                    score += Math.random() * 10;
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestCol = col;
+                    }
+                }
+            }
+
+            if (difficulty === 'easy' && Math.random() < 0.4) {
+                let validMoves = [];
+                for (let col = 0; col < COLS; col++) {
+                    if (getNextRow(col) !== -1) {
+                        validMoves.push(col);
+                    }
+                }
+                return validMoves[Math.floor(Math.random() * validMoves.length)];
+            }
+
+            return bestCol;
+        }
+
+        function computerMove() {
+            if (gameOver) return;
+            
+            let col;
+            switch(difficulty) {
+                case 'hard':
+                    col = findBestMove();
+                    break;
+                case 'normal':
+                    col = Math.random() < 0.8 ? findBestMove() : getRandomValidMove();
+                    break;
+                default: // easy
+                    col = Math.random() < 0.5 ? findBestMove() : getRandomValidMove();
+            }
+            
+            const row = getNextRow(col);
+            if (row !== -1) {
+                placePiece(row, col);
+            }
+        }
+
+        function createBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            
+            for (let row = ROWS - 1; row >= 0; row--) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.onclick = () => makeMove(col);
+                    boardElement.appendChild(cell);
+                }
+            }
+            updateStatus();
+        }
+
+        function makeMove(col) {
+            if (gameOver || !canPlay || (currentPlayer === 2 && isComputerMode)) return;
+            
+            const row = getNextRow(col);
+            if (row === -1) return;
+            
+            placePiece(row, col);
+        }
+
+        function placePiece(row, col) {
+            board[row][col] = currentPlayer;
+            updateCell(row, col);
+            
+            document.querySelectorAll('.cell.winner').forEach(cell => {
+                cell.classList.remove('winner');
+            });
+            
+            if (checkWin(row, col)) {
+                handleWin();
+                return;
+            }
+            
+            if (checkDraw()) {
+                handleDraw();
+                return;
+            }
+            
+            switchPlayer();
+            
+            if (isComputerMode && currentPlayer === 2 && !gameOver) {
+                canPlay = false;
+                setTimeout(() => {
+                    computerMove();
+                    canPlay = true;
+                }, 500);
+            }
+        }
+
+        function checkWin(row, col) {
+            const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+            const value = board[row][col];
+            
+            for (let [dx, dy] of directions) {
+                let count = 1;
+                let winningCells = [[row, col]];
+                
+                for (let dir of [1, -1]) {
+                    for (let i = 1; i <= 3; i++) {
+                        let r = row + dx * i * dir;
+                        let c = col + dy * i * dir;
+                        
+                        if (r < 0 || r >= ROWS || c < 0 || c >= COLS) break;
+                        if (board[r][c] !== value) break;
+                        
+                        count++;
+                        winningCells.push([r, c]);
+                    }
+                }
+                
+                if (count >= 4) {
+                    winningCells.forEach(([r, c]) => {
+                        const cell = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+                        cell.classList.add('winner');
+                    });
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function getRandomValidMove() {
+            let validMoves = [];
+            for (let col = 0; col < COLS; col++) {
+                if (getNextRow(col) !== -1) {
+                    validMoves.push(col);
+                }
+            }
+            return validMoves[Math.floor(Math.random() * validMoves.length)];
+        }
+
+        function handleWin() {
+            gameOver = true;
+            scores[currentPlayer === 1 ? 'player1' : 'player2']++;
+            updateScores();
+            
+            setTimeout(() => {
+                showWinScreen(`
+                    <div style="color: ${currentPlayer === 1 ? 'var(--secondary-color)' : 'var(--soft-color)'}; 
+                         font-size: 24px; padding: 20px;">
+                        🎉 مبروك! <br>
+                        ${currentPlayer === 1 ? 'اللاعب الأحمر' : 'اللاعب الأصفر'} فاز! 🎉
+                    </div>
+                `);
+            }, 1000);
+        }
+
+        function handleDraw() {
+            gameOver = true;
+            showWinScreen(`
+                <div style="color: var(--highlight-color); font-size: 24px; padding: 20px;">
+                    🤝 تعادل! <br>
+                    لعبة رائعة من كلا اللاعبين!
+                </div>
+            `);
+        }
+
+        function checkDraw() {
+            return board[ROWS-1].every(cell => cell !== 0);
+        }
+
+        function getNextRow(col) {
+            for (let row = 0; row < ROWS; row++) {
+                if (board[row][col] === 0) return row;
+            }
+            return -1;
+        }
+
+        function updateCell(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.className = `cell ${currentPlayer === 1 ? 'red' : 'yellow'}`;
+        }
+
+        function switchPlayer() {
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateStatus();
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('status');
+            if (!gameOver) {
+                status.textContent = `دور اللاعب ${currentPlayer === 1 ? 'الأحمر' : 'الأصفر'}`;
+                status.style.color = currentPlayer === 1 ? 'var(--secondary-color)' : 'var(--soft-color)';
+            }
+        }
+
+        function setGameMode(mode) {
+            isComputerMode = mode === 'cpu';
+            document.getElementById('player2Name').textContent = 
+                isComputerMode ? 'الكمبيوتر' : 'اللاعب الأصفر';
+            
+            const difficultySelector = document.getElementById('difficultySelector');
+            difficultySelector.style.display = isComputerMode ? 'flex' : 'none';
+            
+            resetGame();
+        }
+
+        function setDifficulty(level) {
+            difficulty = level;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            resetGame();
+        }
+
+        function showWinScreen(message) {
+            const winScreen = document.getElementById('winScreen');
+            const winMessage = document.getElementById('winMessage');
+            winMessage.innerHTML = message;
+            winScreen.style.display = 'flex';
+        }
+
+        function closeWinScreen() {
+            document.getElementById('winScreen').style.display = 'none';
+            resetGame();
+        }
+
+        function updateScores() {
+            document.getElementById('player1Score').textContent = scores.player1;
+            document.getElementById('player2Score').textContent = scores.player2;
+        }
+
+        function resetGame() {
+            board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.className = 'cell';
+            });
+            currentPlayer = 1;
+            gameOver = false;
+            canPlay = true;
+            updateStatus();
+        }
+
+        // تهيئة اللعبة
+        createBoard();
+    </script>
+</body>
+</html>
